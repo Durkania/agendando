@@ -16,22 +16,28 @@ class Login {
   }
 
   sendForm(){
-    let form_data = new FormData();
+    /*let form_data = new FormData();
     form_data.append('username', $('#user').val())
-    form_data.append('password', $('#password').val())
+    form_data.append('password', $('#password').val())*/
+
+    var username = $('#user').val();
+    var passw = $('#password').val();
+
     $.ajax({
       url: '../server/check_login.php',
-      dataType: "json",
-      cache: false,
+      /*dataType: "json",*/
+      /*cache: false,
       processData: false,
-      contentType: false,
-      data: form_data,
+      contentType: false,*/
+      data: {username: username, passw: passw},
       type: 'POST',
-      success: function(php_response){
-        if (php_response.msg == "OK") {
+      success: function(response){
+        response = JSON.parse(response);
+        console.log(response);
+        if (response.acceso == "concedido") {
           window.location.href = 'main.html';
         }else {
-          alert(php_response.msg);
+          alert(response.motivo/*.msg+" motivo: "+php_response.motivo*/);
         }
       },
       error: function(){

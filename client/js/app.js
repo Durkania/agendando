@@ -1,6 +1,7 @@
 
 
 
+
 class EventsManager {
     constructor() {
         this.obtenerDataInicial()
@@ -11,14 +12,13 @@ class EventsManager {
         let url = '../server/getEvents.php'
         $.ajax({
           url: url,
-          dataType: "json",
           cache: false,
-          processData: false,
-          contentType: false,
           type: 'GET',
           success: (data) =>{
-            if (data.msg=="OK") {
-              this.poblarCalendario(data.eventos)
+
+            if (data) {
+              data = JSON.parse(data)
+              this.obtenerJson(data)
             }else {
               alert(data.msg)
               window.location.href = 'index.html';
@@ -31,6 +31,21 @@ class EventsManager {
 
     }
 
+    obtenerJson(data){
+      var json ;
+      for (var i = 0; i<data.title.length; i++){
+        if(i == 0){
+          json = '[{"id":"'+data.id[i]+'","title":"'+data.title[i]+'","end":"'+data.end[i]+'","allDay":"'+data.allDay[i]+'","start":'+'"'+data.start[i]+'"}'
+        }  else{
+          json += ',{"id":"'+data.id[i]+'","title":"'+data.title[i]+'","end":"'+data.end[i]+'","allDay":"'+data.allDay[i]+'","start":'+'"'+data.start[i]+'"}'
+        }
+
+      }
+      json += ']'
+      json = JSON.parse(json)
+      this.poblarCalendario(json)
+    }
+
     poblarCalendario(eventos) {
         $('.calendario').fullCalendar({
             header: {
@@ -38,7 +53,7 @@ class EventsManager {
         		center: 'title',
         		right: 'month,agendaWeek,basicDay'
         	},
-        	defaultDate: '2016-11-01',
+        	defaultDate: '2018-01-01',
         	navLinks: true,
         	editable: true,
         	eventLimit: true,
@@ -71,28 +86,26 @@ class EventsManager {
     }
 
     anadirEvento(){
-      var form_data = new FormData();
-      form_data.append('titulo', $('#titulo').val())
-      form_data.append('start_date', $('#start_date').val())
-      form_data.append('allDay', document.getElementById('allDay').checked)
-      if (!document.getElementById('allDay').checked) {
-        form_data.append('end_date', $('#end_date').val())
-        form_data.append('end_hour', $('#end_hour').val())
-        form_data.append('start_hour', $('#start_hour').val())
-      }else {
-        form_data.append('end_date', "")
-        form_data.append('end_hour', "")
-        form_data.append('start_hour', "")
+      var titulo = $('#titulo').val();
+      var start_date = $('#start_date').val();
+      var allDay = document.getElementById('allDay').checked;
+      if (!document.getElementById('allDay').checked){
+        var end_date = $('#end_date').val();
+        var end_hour = $('#end_hour').val();
+        var start_hour = $('#start_hour').val();
+      } else {
+        var end_date = "";
+        var end_hour = "";
+        var start_hour = "";
       }
+
       $.ajax({
         url: '../server/new_event.php',
-        dataType: "json",
         cache: false,
-        processData: false,
-        contentType: false,
-        data: form_data,
+        data: {titulo: titulo, start_date: start_date, allDay: allDay, end_date: end_date, end_hour: end_hour, start_hour:start_hour},
         type: 'POST',
         success: (data) =>{
+          data = JSON.parse(data)
           if (data.msg=="OK") {
             alert('Se ha añadido el evento exitosamente')
             if (document.getElementById('allDay').checked) {
@@ -125,18 +138,15 @@ class EventsManager {
     }
 
     eliminarEvento(event, jsEvent){
-
-      var form_data = new FormData()
-      form_data.append('id', event.id)
+      var id = event.id;
       $.ajax({
         url: '../server/delete_event.php',
-        dataType: "json",
         cache: false,
-        processData: false,
-        contentType: false,
-        data: form_data,
+        data: {id:id},
         type: 'POST',
         success: (data) =>{
+          console.log(data);
+          data = JSON.parse(data);
           if (data.msg=="OK") {
             alert('Se ha eliminado el evento exitosamente')
           }else {
@@ -154,34 +164,21 @@ class EventsManager {
     actualizarEvento(evento) {
         let id = evento.id,
             start = moment(evento.start).format('YYYY-MM-DD HH:mm:ss'),
-            end = moment(evento.end).format('YYYY-MM-DD HH:mm:ss'),
-            form_data = new FormData(),
-            start_date,
-            end_date,
-            start_hour,
-            end_hour
-
-        start_date = start.substr(0,10)
-        end_date = end.substr(0,10)
-        start_hour = start.substr(11,8)
-        end_hour = end.substr(11,8)
+            end = moment(evento.end).format('YYYY-MM-DD HH:mm:ss');
 
 
-        form_data.append('id', id)
-        form_data.append('start_date', start_date)
-        form_data.append('end_date', end_date)
-        form_data.append('start_hour', start_hour)
-        form_data.append('end_hour', end_hour)
+        var start_date = start.substr(0,10)
+        var end_date = end.substr(0,10)
+        var start_hour = start.substr(11,8)
+        var end_hour = end.substr(11,8)
 
         $.ajax({
           url: '../server/update_event.php',
-          dataType: "json",
           cache: false,
-          processData: false,
-          contentType: false,
-          data: form_data,
-          type: 'POST',
+          data: {start_date:start_date,end_date:end_date,start_hour:start_hour,end_hour:end_hour, id:id},
+          type: 'post',
           success: (data) =>{
+            data = JSON.parse(data);
             if (data.msg=="OK") {
               alert('Se ha actualizado el evento exitosamente')
             }else {
