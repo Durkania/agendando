@@ -1,4 +1,4 @@
-
+$(document).ready(function() {
 class EventManager {
     constructor() {
         this.urlBase = "/events"
@@ -10,15 +10,23 @@ class EventManager {
     obtenerDataInicial() {
         let url = this.urlBase + "/all"
         $.get(url, (response) => {
+            if (response== "noLOGIN"){
+                window.location.href = "index.html";
+            }
             this.inicializarCalendario(response)
+            console.log (response)
         })
     }
 
     eliminarEvento(evento) {
         let eventId = evento.id
-        $.post('/events/delete/'+eventId, {id: eventId}, (response) => {
-            alert(response)
+        let url = "/events/delete/"+eventId
+        console.log(eventId);
+        $.post(url, (response) => {
+
+           alert(response)
         })
+        this.obtenerDataInicial();
     }
 
     guardarEvento() {
@@ -47,8 +55,11 @@ class EventManager {
                 }
                 $.post(url, ev, (response) => {
                     alert(response)
+
+
                 })
                 $('.calendario').fullCalendar('renderEvent', ev)
+                this.obtenerDataInicial();
             } else {
                 alert("Complete los campos obligatorios para el evento")
             }
@@ -79,7 +90,42 @@ class EventManager {
             }
         })
     }
+    ///
+    actualizarEvento(evento) {
 
+        let id = evento.id,
+            start = moment(evento.start).format('YYYY-MM-DD HH:mm:ss'),
+            end = moment(evento.end).format('YYYY-MM-DD HH:mm:ss'),
+            form_data = new FormData(),
+            start_date,
+            end_date,
+            start_hour,
+            end_hour
+
+        start_date = start.substr(0,10)
+        end_date = end.substr(0,10)
+        start_hour = start.substr(11,8)
+        end_hour = end.substr(11,8)
+
+
+        let ev = {
+                    id: id,
+                    start: start_date,
+                    start_hour:start_hour,
+                    end: end_date,
+                    end_hour: end_hour ,
+
+
+                }
+
+        $.post('/events/update', ev, function(data) {
+            alert(data);
+        });
+
+
+
+    }
+    ///
     inicializarCalendario(eventos) {
         $('.calendario').fullCalendar({
             header: {
@@ -87,7 +133,7 @@ class EventManager {
                 center: 'title',
                 right: 'month,agendaWeek,basicDay'
             },
-            defaultDate: '2016-11-01',
+            defaultDate: new Date(),
             navLinks: true,
             editable: true,
             eventLimit: true,
@@ -99,7 +145,7 @@ class EventManager {
             },
             events: eventos,
             eventDragStart: (event,jsEvent) => {
-                $('.delete').find('img').attr('src', "img/trash-open.png");
+                $('.delete').find('img').attr('src', "../img/trash-open.png");
                 $('.delete').css('background-color', '#a70f19')
             },
             eventDragStop: (event,jsEvent) => {
@@ -112,7 +158,7 @@ class EventManager {
                 if (jsEvent.pageX >= x1 && jsEvent.pageX<= x2 &&
                     jsEvent.pageY >= y1 && jsEvent.pageY <= y2) {
                         this.eliminarEvento(event)
-                        $('.calendario').fullCalendar('removeEvents', event.id);
+                        $('.calendario').fullCalendar('removeEvents', event._id);
                     }
                 }
             })
@@ -120,3 +166,8 @@ class EventManager {
     }
 
     const Manager = new EventManager()
+    $("#logout").click(function(event) {
+        $.get("/events/logout" ,()=>{
+            window.location.href= "index.html";
+        } );
+    });})
