@@ -3,8 +3,11 @@ La aplicación tiene un script en el index.js que inicia la base de datos mongo,
 usuario: 1
 pass: nextu
 
+Por Jhonatan Quijano
+
+— -
+
+- Nota -
 Solo queda abrir mongod.exe y ejecutar dentro de este carpeta la consola, y el comando "npm start", que iniciara el servidor en el puerto 8082
 
 Por ultimo, ingrese al navegador y digite localhost:8082
-
-Por Jhonatan Quijano
